@@ -1,8 +1,6 @@
 package gb28181
 
 import (
-	"fmt"
-
 	"github.com/Monibuca/engine/v3"
 	"github.com/Monibuca/plugin-gb28181/v3/utils"
 	. "github.com/Monibuca/utils/v3"
@@ -19,7 +17,6 @@ type Publisher struct {
 func (p *Publisher) Publish() (result bool) {
 	if result = p.Stream.Publish(); result {
 		p.pushVideo = func(pack engine.VideoPack) {
-			fmt.Println("[publisher]p.parser.VideoStreamType:", p.parser.VideoStreamType)
 			var vt *engine.VideoTrack
 			switch p.parser.VideoStreamType {
 			case 0x1B:
@@ -27,7 +24,6 @@ func (p *Publisher) Publish() (result bool) {
 			case 0x24:
 				vt = p.Stream.NewVideoTrack(12)
 			default:
-				vt = p.Stream.NewVideoTrack(7)
 				return
 			}
 			vt.PushAnnexB(pack)

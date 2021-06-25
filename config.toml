@@ -80,4 +80,4 @@ Debug=true
 Serial = "34020000002000000001"
 Realm = "3402000000"
 Expires = 3600
-ListenAddr = "127.0.0.1:5060"
+ListenAddr = "192.168.50.150:5060"

@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -111,7 +110,6 @@ func (r *Stream) WaitVideoTrack(codecs ...string) *VideoTrack {
 	if !config.EnableVideo {
 		return nil
 	}
-	fmt.Println("[stream]WaitVideoTrack：", codecs)
 	if track := r.VideoTracks.WaitTrack(codecs...); track != nil {
 		return track.(*VideoTrack)
 	}

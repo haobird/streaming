@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -71,7 +70,6 @@ func (tw *TrackWaiter) Dispose() {
 }
 func (tw *TrackWaiter) Wait(c chan<- Track) {
 	tw.L.Lock()
-	fmt.Println("[track]Cond.Wait:")
 	tw.Cond.Wait()
 	tw.L.Unlock()
 	c <- tw.Track
@@ -130,7 +128,6 @@ func (ts *Tracks) WaitTrack(codecs ...string) Track {
 	if len(codecs) == 0 {
 		codecs = ts.Codecs()
 	}
-	fmt.Println("[track]WaitTrack", codecs)
 	var tws []*TrackWaiter
 	for _, codec := range codecs {
 		if tw, ok := ts.GetTrack(codec); ok {
@@ -139,21 +136,17 @@ func (ts *Tracks) WaitTrack(codecs ...string) Track {
 			tws = append(tws, tw)
 		}
 	}
-	fmt.Println("[track]GetTrack:", codecs)
 	if ts.Err() != nil {
 		return nil
 	}
-	fmt.Println("[track]tws", tws)
 	c := make(chan Track, len(tws))
 	for _, tw := range tws {
 		go tw.Wait(c)
 	}
 	select {
 	case <-ts.Done():
-		fmt.Println("[track]ts.Done:")
 		return nil
 	case t := <-c:
-		fmt.Println("[track]<-c:")
 		return t
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"flag"
+	"fmt"
 	"mime"
 	"net/http"
 	_ "net/http/pprof"
@@ -35,6 +36,8 @@ var ui embed.FS
 
 func main() {
 	addr := flag.String("c", "config.toml", "config file")
+	flag.Parse()
+	fmt.Println("config path:", *addr)
 	if _, err := os.Stat(*addr); err == nil {
 		Run(*addr)
 	} else {

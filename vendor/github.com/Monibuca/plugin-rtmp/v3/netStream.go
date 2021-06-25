@@ -101,17 +101,15 @@ func processRtmp(conn net.Conn) {
 						return
 					}
 				case "publish":
-
 					pm := msg.MsgData.(*PublishMessage)
 					streamPath := nc.appName + "/" + strings.Split(pm.PublishingName, "?")[0]
 					stream = &engine.Stream{Type: "RTMP", StreamPath: streamPath}
-					fmt.Println("[rtmp][publish]streamPath:", streamPath)
 					if stream.Publish() {
 						absTs := make(map[uint32]uint32)
 						vt := stream.NewVideoTrack(0)
 						at := stream.NewAudioTrack(0)
 						rec_audio = func(msg *Chunk) {
-							// fmt.Println("a:", msg.ChunkStreamID)
+							fmt.Println("a:", msg.ChunkStreamID)
 							if msg.Timestamp == 0xffffff {
 								absTs[msg.ChunkStreamID] += msg.ExtendTimestamp
 							} else {
@@ -120,7 +118,7 @@ func processRtmp(conn net.Conn) {
 							at.PushByteStream(engine.AudioPack{Timestamp: absTs[msg.ChunkStreamID], Payload: msg.Body})
 						}
 						rec_video = func(msg *Chunk) {
-							// fmt.Println("v:", msg.ChunkStreamID)
+							fmt.Println("v:", msg.ChunkStreamID)
 							if msg.Timestamp == 0xffffff {
 								absTs[msg.ChunkStreamID] += msg.ExtendTimestamp
 							} else {

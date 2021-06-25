@@ -2,7 +2,6 @@ package engine
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"sync"
 	"time"
@@ -41,7 +40,6 @@ func (s *Subscriber) close() {
 
 // Close 关闭订阅者
 func (s *Subscriber) Close() {
-	fmt.Println("关闭订阅被触发")
 	s.closeOnce.Do(s.close)
 }
 
@@ -73,22 +71,17 @@ func (s *Subscriber) Play(at *AudioTrack, vt *VideoTrack) {
 		s.PlayVideo(vt)
 		return
 	}
-	fmt.Println("[engine]订阅：", s.ID)
 	ctx2 := s.Ctx2
 	if ctx2 == nil {
 		ctx2 = context.TODO()
 	}
 	select {
 	case <-vt.WaitIDR.Done(): //等待获取到第一个关键帧
-		fmt.Println("[engine].WaitIDR.Done")
 	case <-s.Context.Done():
-		fmt.Println("[engine].Context.Done")
 		return
 	case <-ctx2.Done(): //可能等不到关键帧就退出了
-		fmt.Println("[engine]ctx2.Done")
 		return
 	}
-	fmt.Println("[engine]从关键帧开始读取", s.ID)
 	vr := vt.Buffer.SubRing(vt.IDRIndex) //从关键帧开始读取，首屏秒开
 	vr.Current.Wait()                    //等到RingBuffer可读
 	ar := at.Buffer.SubRing(at.Buffer.Index)

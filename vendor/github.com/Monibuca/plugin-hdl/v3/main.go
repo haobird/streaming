@@ -3,7 +3,6 @@ package hdl
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"net/http"
 	"regexp"
 
@@ -45,16 +44,13 @@ func HDLHandler(w http.ResponseWriter, r *http.Request) {
 	// 	w.WriteHeader(403)
 	// 	return
 	// }
-	fmt.Println("[hdl插件] starting")
 	utils.CORS(w, r)
 	parts := streamPathReg.FindStringSubmatch(r.RequestURI)
-	fmt.Println("[hdl插件] parts:", parts)
 	if len(parts) == 0 {
 		w.WriteHeader(404)
 		return
 	}
 	stringPath := parts[3]
-
 	if stringPath == "" {
 		stringPath = parts[5]
 	}
@@ -63,11 +59,9 @@ func HDLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(codec.FLVHeader)
 	sub := Subscriber{ByteStreamFormat: true, ID: r.RemoteAddr, Type: "FLV", Ctx2: r.Context()}
 	if err := sub.Subscribe(stringPath); err == nil {
-		fmt.Println("[hdl插件] Subscribe:", stringPath)
 		vt, at := sub.WaitVideoTrack(), sub.WaitAudioTrack()
 		var buffer bytes.Buffer
 		if _, err := amf.WriteString(&buffer, "onMetaData"); err != nil {
-			fmt.Println("[hdl插件] 失败: WriteString")
 			return
 		}
 		metaData := amf.Object{
@@ -106,9 +100,7 @@ func HDLHandler(w http.ResponseWriter, r *http.Request) {
 		if _, err := WriteEcmaArray(&buffer, metaData); err != nil {
 			return
 		}
-		fmt.Println("[hdl]WriteFLVTag")
 		codec.WriteFLVTag(w, codec.FLV_TAG_TYPE_SCRIPT, 0, buffer.Bytes())
-		fmt.Println("[hdl]Play")
 		sub.Play(at, vt)
 	}
 }
