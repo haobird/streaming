@@ -1,0 +1,53 @@
+version: '3'
+services:
+    stream:
+        build: .
+        container_name: stream
+        working_dir: /opt
+        environment:
+            - NODE_ENV=production
+        ports:
+            - "3000:3000"
+            - "8080:8080"
+            - "5060:5060"
+            - "1935:1935"
+            - "2020:2020"
+            - "58200:58200"
+        volumes:
+            - ./:/opt
+        command: "go run main.go"
+
+    ffmpeg:
+        build: .
+        container_name: ffmpeg
+        working_dir: /opt
+        volumes:
+            - ./:/opt
+        command: "/opt/app/ffmpeg.sh"
+    # node:
+    #     image: node:16-stretch
+    #     container_name: node
+    #     restart: always
+    #     working_dir: /opt
+    #     environment:
+    #         - NODE_ENV=production
+    #     ports:
+    #         - "9081:3000"
+    #     volumes:
+    #         - ./:/opt
+    #     command: "/opt/monica.sh"
+
+    # stream:
+    #     image: golang:1.16-stretch
+    #     container_name: stream
+    #     restart: always
+    #     ports:
+    #         - "8080:8080"
+    #         # - "9081:9081"
+    #     volumes:
+    #         - ./:/opt
+    #     working_dir: /opt
+    #     # command: go run face/main.go
+    #     command: ["/bin/sh", "-c", "while true;do echo hello docker;sleep 1;done"]
+    
+
