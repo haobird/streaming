@@ -2,7 +2,7 @@
 EnableAudio = true
 EnableVideo = true
 # 发布流默认过期时间 1分钟 (24小时：86400000000000，20分钟：1200000000000，1分钟：60000000000)
-PublishTimeout = 1200000000000
+PublishTimeout = 600000000000
 [Summary]
 [RTMP]
 ListenAddr = ":1935"
