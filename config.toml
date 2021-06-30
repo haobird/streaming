@@ -74,7 +74,7 @@ StreamPath = "live/rtsp"
 # PortMin = 30000
 # PortMax = 40000
 [GB28181]
-AutoInvite=true
+AutoInvite=false
 AutoUnPublish=false
 Debug=false
 Serial = "34020000002000000001"
