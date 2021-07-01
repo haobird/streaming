@@ -7,14 +7,15 @@ services:
         # network_mode: "host"
         environment:
             - APP_ENV=${APP_ENV:-dev} #production
+            - HOST_IP=${HOST_IP} # hostip
         ports:
             - "3000:3000"
             - "8080:8080"
-            - "5060:5060"
+            # - "5060:5060"
             - "5060:5060/udp"
             - "1935:1935"
             - "2020:2020"
-            - "58200:58200"
+            # - "58200:58200"
             - "58200:58200/udp"
         volumes:
             - ./:/opt
