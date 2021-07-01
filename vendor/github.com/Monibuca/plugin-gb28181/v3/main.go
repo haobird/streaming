@@ -55,15 +55,16 @@ func (p *Publishers) Get(key uint32) *Publisher {
 }
 
 var config = struct {
-	Serial        string
-	Realm         string
-	ListenAddr    string
-	Expires       int
-	MediaPort     uint16
-	AutoInvite    bool
-	AutoUnPublish bool
-	Debug         bool
-}{"34020000002000000001", "3402000000", "127.0.0.1:5060", 3600, 58200, false, true, false}
+	Serial          string
+	Realm           string
+	ListenAddr      string
+	Expires         int
+	MediaPort       uint16
+	AutoInvite      bool
+	AutoUnPublish   bool
+	Debug           bool
+	CatalogInterval int
+}{"34020000002000000001", "3402000000", "127.0.0.1:5060", 3600, 58200, false, true, false, 30}
 
 func init() {
 	engine.InstallPlugin(&engine.PluginConfig{
@@ -96,6 +97,7 @@ func run() {
 		AudioEnable:       true,
 		WaitKeyFrame:      true,
 		MediaIdleTimeout:  30,
+		CatalogInterval:   config.CatalogInterval,
 	}
 
 	http.HandleFunc("/api/gb28181/query/records", func(w http.ResponseWriter, r *http.Request) {
@@ -172,8 +174,9 @@ func run() {
 	})
 	s := transaction.NewCore(config)
 	s.OnRegister = func(msg *sip.Message) {
-		Devices.Store(msg.From.Uri.UserInfo(), &Device{
-			ID:           msg.From.Uri.UserInfo(),
+		id := msg.From.Uri.UserInfo()
+		d := &Device{
+			ID:           id,
 			RegisterTime: time.Now(),
 			UpdateTime:   time.Now(),
 			Status:       string(sip.REGISTER),
@@ -183,7 +186,16 @@ func run() {
 			Addr:         msg.Via.GetSendBy(),
 			SipIP:        config.MediaIP,
 			channelMap:   make(map[string]*Channel),
-		})
+		}
+		if old, ok := Devices.Load(id); !ok {
+			go d.Query()
+		} else {
+			oldD := old.(*Device)
+			d.RegisterTime = oldD.RegisterTime
+			d.channelMap = oldD.channelMap
+			d.Status = oldD.Status
+		}
+		Devices.Store(id, d)
 	}
 	s.OnMessage = func(msg *sip.Message) bool {
 		if v, ok := Devices.Load(msg.From.Uri.UserInfo()); ok {
@@ -204,7 +216,9 @@ func run() {
 			decoder.Decode(temp)
 			switch temp.XMLName.Local {
 			case "Notify":
-				go d.Query()
+				if d.Channels == nil {
+					go d.Query()
+				}
 			case "Response":
 				switch temp.CmdType {
 				case "Catalog":
@@ -228,6 +242,7 @@ func run() {
 	//	})
 	//})
 	go listenMedia()
+	go queryCatalog(config)
 	s.Start()
 }
 func listenMedia() {
@@ -258,5 +273,20 @@ func listenMedia() {
 		if publisher := publishers.Get(rtpPacket.SSRC); publisher != nil && publisher.Err() == nil {
 			publisher.PushPS(rtpPacket.Payload, rtpPacket.Timestamp)
 		}
+	}
+}
+
+func queryCatalog(config *transaction.Config) {
+	t := time.NewTicker(time.Duration(config.CatalogInterval) * time.Second)
+	for range t.C {
+		Devices.Range(func(key, value interface{}) bool {
+			device := value.(*Device)
+			if time.Since(device.UpdateTime) > time.Duration(config.RegisterValidity)*time.Second {
+				Devices.Delete(key)
+			} else {
+				go device.Query()
+			}
+			return true
+		})
 	}
 }

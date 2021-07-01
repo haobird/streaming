@@ -20,15 +20,14 @@ func (ap AudioPack) Copy(ts uint32) AudioPack {
 
 type AudioTrack struct {
 	Track_Audio
-	SoundRate       int    //2bit
-	SoundSize       byte   //1bit
-	Channels        byte   //1bit
-	ExtraData       []byte `json:"-"` //rtmp协议需要先发这个帧
-	PushByteStream  func(pack AudioPack)
-	PushRaw         func(pack AudioPack)
-	WriteByteStream func(writer io.Writer, pack AudioPack) //使用函数写入，避免申请内存
+	SoundRate       int                                    //2bit
+	SoundSize       byte                                   //1bit
+	Channels        byte                                   //1bit
+	ExtraData       []byte                                 `json:"-"` //rtmp协议需要先发这个帧
+	PushByteStream  func(pack AudioPack)                   `json:"-"`
+	PushRaw         func(pack AudioPack)                   `json:"-"`
+	WriteByteStream func(writer io.Writer, pack AudioPack) `json:"-"` //使用函数写入，避免申请内存
 }
-
 
 func (at *AudioTrack) pushByteStream(pack AudioPack) {
 	at.CodecID = pack.Payload[0] >> 4
@@ -75,7 +74,6 @@ func (at *AudioTrack) pushByteStream(pack AudioPack) {
 			if payloadLen < 4 {
 				return
 			}
-			at.GetBPS(payloadLen)
 			pack.Raw = pack.Payload[1:]
 			at.push(pack)
 		}
@@ -116,11 +114,18 @@ func (at *AudioTrack) push(pack AudioPack) {
 	} else {
 		audio.AudioPack = pack
 	}
+	at.bytes += len(pack.Raw)
+	at.GetBPS()
+	if audio.Timestamp-at.ts > 1000 {
+		at.bytes = 0
+		at.ts = audio.Timestamp
+	}
 	abr.NextW()
 }
 
 func (s *Stream) NewAudioTrack(codec byte) (at *AudioTrack) {
 	at = &AudioTrack{}
+	at.CodecID = codec
 	at.PushByteStream = at.pushByteStream
 	at.PushRaw = at.pushRaw
 	at.Stream = s

@@ -2,6 +2,7 @@ package record
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -25,6 +26,18 @@ type FlvFileInfo struct {
 	Duration uint32
 }
 
+type FileWr interface {
+	io.Reader
+	io.Writer
+	io.Seeker
+	io.Closer
+}
+
+var ExtraConfig struct {
+	CreateFileFn func(filename string) (FileWr,error)
+	AutoRecordFilter func(stream string) bool
+}
+
 func init() {
 	InstallPlugin(&PluginConfig{
 		Name:   "Record",
@@ -40,6 +53,7 @@ func init() {
 func run() {
 	go AddHook(HOOK_PUBLISH, onPublish)
 	os.MkdirAll(config.Path, 0755)
+	http.HandleFunc("/vod/", VodHandler)
 	http.HandleFunc("/api/record/flv/list", func(w http.ResponseWriter, r *http.Request) {
 		CORS(w, r)
 		if files, err := tree(config.Path, 0); err == nil {
@@ -114,7 +128,7 @@ func run() {
 
 func onPublish(v interface{}) {
 	p := v.(*Stream)
-	if config.AutoRecord {
+	if config.AutoRecord || (ExtraConfig.AutoRecordFilter != nil && ExtraConfig.AutoRecordFilter(p.StreamPath)) {
 		SaveFlv(p.StreamPath, false)
 	}
 }

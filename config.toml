@@ -1,7 +1,7 @@
 [Engine]
 EnableAudio = true
 EnableVideo = true
-# 发布流默认过期时间 1分钟 (24小时：86400000000000，20分钟：1200000000000，1分钟：60000000000)
+# 发布流默认过期时间 10分钟
 PublishTimeout = 600000000000
 [Summary]
 [RTMP]
@@ -74,10 +74,9 @@ StreamPath = "live/rtsp"
 # PortMin = 30000
 # PortMax = 40000
 [GB28181]
-AutoInvite=false
-AutoUnPublish=false
-Debug=false
+AutoUnPublish = false
+Debug = true
 Serial = "34020000002000000001"
 Realm = "3402000000"
 Expires = 3600
-ListenAddr = "192.168.1.109:5060"
+ListenAddr = "192.168.1.120:5060"

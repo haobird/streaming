@@ -109,20 +109,24 @@ func processRtmp(conn net.Conn) {
 						vt := stream.NewVideoTrack(0)
 						at := stream.NewAudioTrack(0)
 						rec_audio = func(msg *Chunk) {
-							// fmt.Println("a:", msg.ChunkStreamID)
+							if msg.ChunkType == 0 {
+								absTs[msg.ChunkStreamID] = 0
+							}
 							if msg.Timestamp == 0xffffff {
 								absTs[msg.ChunkStreamID] += msg.ExtendTimestamp
 							} else {
-								absTs[msg.ChunkStreamID] += msg.Timestamp // 绝对时间戳
+								absTs[msg.ChunkStreamID] += msg.Timestamp
 							}
 							at.PushByteStream(engine.AudioPack{Timestamp: absTs[msg.ChunkStreamID], Payload: msg.Body})
 						}
 						rec_video = func(msg *Chunk) {
-							// fmt.Println("v:", msg.ChunkStreamID)
+							if msg.ChunkType == 0 {
+								absTs[msg.ChunkStreamID] = 0
+							}
 							if msg.Timestamp == 0xffffff {
 								absTs[msg.ChunkStreamID] += msg.ExtendTimestamp
 							} else {
-								absTs[msg.ChunkStreamID] += msg.Timestamp // 绝对时间戳
+								absTs[msg.ChunkStreamID] += msg.Timestamp
 							}
 							vt.PushByteStream(engine.VideoPack{Timestamp: absTs[msg.ChunkStreamID], Payload: msg.Body})
 						}
@@ -148,18 +152,18 @@ func processRtmp(conn net.Conn) {
 						err = nc.SendMessage(SEND_PLAY_RESPONSE_MESSAGE, newPlayResponseMessageData(nc.streamID, NetStream_Play_Reset, Level_Status))
 						err = nc.SendMessage(SEND_PLAY_RESPONSE_MESSAGE, newPlayResponseMessageData(nc.streamID, NetStream_Play_Start, Level_Status))
 						vt, at := subscriber.WaitVideoTrack(), subscriber.WaitAudioTrack()
-						var lastTimeStamp uint32
-						var getDeltaTime func(uint32) uint32
-						getDeltaTime = func(ts uint32) (t uint32) {
-							lastTimeStamp = ts
+						if vt != nil {
+							var lastTimeStamp uint32
+							var getDeltaTime func(uint32) uint32
 							getDeltaTime = func(ts uint32) (t uint32) {
-								t = ts - lastTimeStamp
 								lastTimeStamp = ts
+								getDeltaTime = func(ts uint32) (t uint32) {
+									t = ts - lastTimeStamp
+									lastTimeStamp = ts
+									return
+								}
 								return
 							}
-							return
-						}
-						if vt != nil {
 							err = nc.SendMessage(SEND_FULL_VDIEO_MESSAGE, &AVPack{Payload: vt.ExtraData.Payload})
 							subscriber.OnVideo = func(pack engine.VideoPack) {
 								err = nc.SendMessage(SEND_FULL_VDIEO_MESSAGE, &AVPack{Timestamp: 0, Payload: pack.Payload})
@@ -169,6 +173,17 @@ func processRtmp(conn net.Conn) {
 							}
 						}
 						if at != nil {
+							var lastTimeStamp uint32
+							var getDeltaTime func(uint32) uint32
+							getDeltaTime = func(ts uint32) (t uint32) {
+								lastTimeStamp = ts
+								getDeltaTime = func(ts uint32) (t uint32) {
+									t = ts - lastTimeStamp
+									lastTimeStamp = ts
+									return
+								}
+								return
+							}
 							subscriber.OnAudio = func(pack engine.AudioPack) {
 								if at.CodecID == 10 {
 									err = nc.SendMessage(SEND_FULL_AUDIO_MESSAGE, &AVPack{Payload: at.ExtraData})

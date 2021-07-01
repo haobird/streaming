@@ -2,7 +2,7 @@
 
 # 预设置变量
 cfgpath="config.toml"
-hostip="192.168.1.109"
+hostip="192.168.1.110"
 
 # 判断是否 有hostip的环境变量
 if [ $HOST_IP ];then
@@ -20,7 +20,7 @@ echo "hostip=$hostip"
 cp config.toml /tmp
 
 # 替换文件中变量值
-sed -i "s/192.168.50.150/${hostip}/g" /tmp/config.toml
+sed -i "s/192.168.1.120/${hostip}/g" /tmp/config.toml
 
 cfgpath="/tmp/config.toml"
 

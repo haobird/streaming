@@ -54,10 +54,10 @@ type VideoTrack struct {
 	ExtraData       *VideoPack      `json:"-"` //H264(SPS、PPS) H265(VPS、SPS、PPS)
 	WaitIDR         context.Context `json:"-"`
 	revIDR          func()
-	PushByteStream  func(pack VideoPack)
-	PushNalu        func(pack VideoPack)
-	WriteByteStream func(writer io.Writer, pack VideoPack) //使用函数写入，避免申请内存
-
+	PushByteStream  func(pack VideoPack)                   `json:"-"`
+	PushNalu        func(pack VideoPack)                   `json:"-"`
+	WriteByteStream func(writer io.Writer, pack VideoPack) `json:"-"` //使用函数写入，避免申请内存
+	UsingDonlField  bool
 }
 
 func (s *Stream) NewVideoTrack(codec byte) (vt *VideoTrack) {
@@ -196,9 +196,43 @@ func (vt *VideoTrack) pushNalu(pack VideoPack) {
 								p.NALUs = [][]byte{nalu[currOffset : currOffset+naluSize]}
 								vt.PushNalu(p)
 							}
+							/*
+								0                   1                   2                   3
+								0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+								|   PayloadHdr (Type=29)        |   FU header   | DONL (cond)   |
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+								|   DONL (cond) |                                               |
+								|-+-+-+-+-+-+-+-+                                               |
+								|                         FU payload                            |
+								|                                                               |
+								|                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+								|                               :...OPTIONAL RTP padding        |
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+							*/
 						case codec.NALU_FUB:
 							fuaHeaderSize = 4
 							fallthrough
+							/*
+								0                   1                   2                   3
+								0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+								|   PayloadHdr (Type=28)        |         NALU 1 Size           |
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+								|          NALU 1 HDR           |                               |
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+         NALU 1 Data           |
+								|                   . . .                                       |
+								|                                                               |
+								+               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+								|  . . .        | NALU 2 Size                   | NALU 2 HDR    |
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+								| NALU 2 HDR    |                                               |
+								+-+-+-+-+-+-+-+-+              NALU 2 Data                      |
+								|                   . . .                                       |
+								|                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+								|                               :...OPTIONAL RTP padding        |
+								+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+							*/
 						case codec.NALU_FUA:
 							if len(nalu) < fuaHeaderSize {
 								utils.Printf("Payload is not large enough to be FU-A")
@@ -225,9 +259,11 @@ func (vt *VideoTrack) pushNalu(pack VideoPack) {
 							p := pack.Clone()
 							p.IDR = true
 							p.NALUs = [][]byte{nalu}
+							vt.bytes += len(nalu)
 							vt.push(p)
 						case codec.NALU_Non_IDR_Picture:
 							nonIDRs = append(nonIDRs, nalu)
+							vt.bytes += len(nalu)
 						case codec.NALU_SEI:
 						case codec.NALU_Filler_Data:
 						default:
@@ -272,29 +308,106 @@ func (vt *VideoTrack) pushNalu(pack VideoPack) {
 				vt.PushNalu = func(pack VideoPack) {
 					var nonIDRs [][]byte
 					for _, nalu := range pack.NALUs {
+						/*
+						   0               1
+						   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+						   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						   |F|    Type   |  LayerId  | TID |
+						   +-------------+-----------------+
+						   Forbidden zero(F) : 1 bit
+						   NAL unit type(Type) : 6 bits
+						   NUH layer ID(LayerId) : 6 bits
+						   NUH temporal ID plus 1 (TID) : 3 bits
+						*/
 						naluType := nalu[0] & naluTypeBitmask_hevc >> 1
 						if len(nalu) == 0 {
 							continue
 						}
 						switch naluType {
+						// 4.4.2. Aggregation Packets (APs) (p25)
+						/*
+						    0               1               2               3
+						    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+						   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						   |      PayloadHdr (Type=48)     |           NALU 1 DONL         |
+						   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						   |           NALU 1 Size         |            NALU 1 HDR         |
+						   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						   |                                                               |
+						   |                         NALU 1 Data . . .                     |
+						   |                                                               |
+						   +     . . .     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						   |               |  NALU 2 DOND  |            NALU 2 Size        |
+						   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						   |          NALU 2 HDR           |                               |
+						   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+            NALU 2 Data        |
+						   |                                                               |
+						   |         . . .                 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						   |                               :    ...OPTIONAL RTP padding    |
+						   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+						*/
+						case codec.NAL_UNIT_UNSPECIFIED_48:
+							currOffset := 2
+							if vt.UsingDonlField {
+								currOffset = 4
+							}
+							var nalus [][]byte
+							for naluSize := 0; currOffset < len(nalu); currOffset += naluSize {
+								naluSize = int(binary.BigEndian.Uint16(nalu[currOffset:]))
+								currOffset += 2
+								if currOffset+len(nalu) < currOffset+naluSize {
+									utils.Printf("STAP-A declared size(%d) is larger then buffer(%d)", naluSize, len(nalu)-currOffset)
+									return
+								}
+								nalus = append(nalus, nalu[currOffset:currOffset+naluSize])
+								if vt.UsingDonlField {
+									currOffset += 1
+								}
+							}
+							p := pack.Clone()
+							p.NALUs = nalus
+							vt.PushNalu(p)
+
+							// 4.4.3. Fragmentation Units (p29)
+							/*
+							    0               1               2               3
+							    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+							   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+							   |     PayloadHdr (Type=49)      |    FU header  |  DONL (cond)  |
+							   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+							   |  DONL (cond)  |                                               |
+							   |-+-+-+-+-+-+-+-+                                               |
+							   |                           FU payload                          |
+							   |                                                               |
+							   |                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+							   |                               :    ...OPTIONAL RTP padding    |
+							   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+							   +---------------+
+							   |0|1|2|3|4|5|6|7|
+							   +-+-+-+-+-+-+-+-+
+							   |S|E|   FuType  |
+							   +---------------+
+							*/
 						case codec.NAL_UNIT_UNSPECIFIED_49:
-							if len(nalu) < 3 {
+							offset := 3
+							if vt.UsingDonlField {
+								offset = 5
+							}
+							if len(nalu) < offset {
 								continue
 							}
-							S := nalu[3]&fuaStartBitmask != 0
-							E := nalu[3]&fuaEndBitmask != 0
-							naluType = nalu[3] & 0b00111111
+							S := nalu[offset]&fuaStartBitmask != 0
+							E := nalu[offset]&fuaEndBitmask != 0
+							naluType = nalu[offset] & 0b00111111
 							if S {
 								fuaBuffer = bytes.NewBuffer([]byte{})
 								nalu[0] = nalu[0]&0b10000001 | (naluType << 1)
 								fuaBuffer.Write(nalu[:2])
-								fuaBuffer.Write(nalu[3:])
-							} else if E {
-								fuaBuffer.Write(nalu[3:])
+							}
+							fuaBuffer.Write(nalu[offset:])
+							if E {
 								pack.NALUs = [][]byte{fuaBuffer.Bytes()}
 								vt.PushNalu(pack)
-							} else {
-								fuaBuffer.Write(nalu[3:])
 							}
 						case codec.NAL_UNIT_CODED_SLICE_BLA,
 							codec.NAL_UNIT_CODED_SLICE_BLANT,
@@ -354,7 +467,7 @@ func (vt *VideoTrack) pushByteStream(pack VideoPack) {
 			if len(pack.Payload) < 4 {
 				return
 			}
-			vt.GetBPS(len(pack.Payload))
+			vt.bytes += len(pack.Payload)
 			pack.IDR = pack.Payload[0]>>4 == 1
 			pack.CompositionTime = utils.BigEndian.Uint24(pack.Payload[2:])
 			nalus := pack.Payload[5:]
@@ -385,9 +498,12 @@ func (vt *VideoTrack) push(pack VideoPack) {
 	} else {
 		video.VideoPack = pack
 	}
+	vt.GetBPS()
 	video.Sequence = vt.PacketCount
 	if pack.IDR {
 		vt.revIDR()
+		vt.ts = video.Timestamp
+		vt.bytes = 0
 	}
 	vbr.NextW()
 }

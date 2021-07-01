@@ -29,6 +29,19 @@ services:
         volumes:
             - ./:/opt
         command: "/opt/app/ffmpeg.sh"
+
+
+    nginx:
+        image: nginx:1.11.1
+        restart: always
+        ports: 
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./docker/nginx/main.conf:/etc/nginx/nginx.conf
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+            - ./:/www
+
     # node:
     #     image: node:16-stretch
     #     container_name: node

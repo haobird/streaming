@@ -1,13 +1,13 @@
 # github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
-# github.com/Monibuca/engine/v3 v3.0.0-beta8
+# github.com/Monibuca/engine/v3 v3.0.3
 ## explicit
 github.com/Monibuca/engine/v3
 github.com/Monibuca/engine/v3/util
 # github.com/Monibuca/plugin-gateway/v3 v3.0.0-20210616163424-37db18ab9df2
 ## explicit
 github.com/Monibuca/plugin-gateway/v3
-# github.com/Monibuca/plugin-gb28181/v3 v3.0.0-20210615231904-4528a67e922a
+# github.com/Monibuca/plugin-gb28181/v3 v3.0.0-20210629055419-5682750723f4
 ## explicit
 github.com/Monibuca/plugin-gb28181/v3
 github.com/Monibuca/plugin-gb28181/v3/sip
@@ -26,13 +26,13 @@ github.com/Monibuca/plugin-jessica/v3
 # github.com/Monibuca/plugin-logrotate/v3 v3.0.0-20210306092538-eb6c45576107
 ## explicit
 github.com/Monibuca/plugin-logrotate/v3
-# github.com/Monibuca/plugin-record/v3 v3.0.0-20210615000709-e02dc36bdda7
+# github.com/Monibuca/plugin-record/v3 v3.0.0-20210627073137-e55ed2f0aaba
 ## explicit
 github.com/Monibuca/plugin-record/v3
-# github.com/Monibuca/plugin-rtmp/v3 v3.0.0-20210618135434-da84270f01d4
+# github.com/Monibuca/plugin-rtmp/v3 v3.0.0-20210628134953-a60267f608ce
 ## explicit
 github.com/Monibuca/plugin-rtmp/v3
-# github.com/Monibuca/plugin-rtsp/v3 v3.0.0-20210615000640-b0c3cdb21a4e
+# github.com/Monibuca/plugin-rtsp/v3 v3.0.0-20210624092920-ba9f39853fc3
 ## explicit
 github.com/Monibuca/plugin-rtsp/v3
 # github.com/Monibuca/plugin-summary v0.0.0-20210615000407-2786546820de
@@ -45,7 +45,6 @@ github.com/Monibuca/plugin-ts/v3
 ## explicit
 github.com/Monibuca/plugin-webrtc/v3
 # github.com/Monibuca/utils/v3 v3.0.0-beta1
-## explicit
 github.com/Monibuca/utils/v3
 github.com/Monibuca/utils/v3/bits
 github.com/Monibuca/utils/v3/bits/pio
@@ -55,25 +54,9 @@ github.com/Monibuca/utils/v3/codec/mpegts
 github.com/StackExchange/wmi
 # github.com/funny/slab v0.0.0-20180511031532-b1fad5e5d478
 github.com/funny/slab
-# github.com/gin-contrib/sse v0.1.0
-github.com/gin-contrib/sse
-# github.com/gin-gonic/gin v1.7.2
-## explicit
-github.com/gin-gonic/gin
-github.com/gin-gonic/gin/binding
-github.com/gin-gonic/gin/internal/bytesconv
-github.com/gin-gonic/gin/internal/json
-github.com/gin-gonic/gin/render
 # github.com/go-ole/go-ole v1.2.5
 github.com/go-ole/go-ole
 github.com/go-ole/go-ole/oleutil
-# github.com/go-playground/locales v0.13.0
-github.com/go-playground/locales
-github.com/go-playground/locales/currency
-# github.com/go-playground/universal-translator v0.17.0
-github.com/go-playground/universal-translator
-# github.com/go-playground/validator/v10 v10.4.1
-github.com/go-playground/validator/v10
 # github.com/gobwas/httphead v0.1.0
 github.com/gobwas/httphead
 # github.com/gobwas/pool v0.2.1
@@ -81,21 +64,10 @@ github.com/gobwas/pool
 github.com/gobwas/pool/internal/pmath
 github.com/gobwas/pool/pbufio
 # github.com/gobwas/ws v1.0.4
-## explicit
 github.com/gobwas/ws
-# github.com/golang/protobuf v1.4.3
-github.com/golang/protobuf/proto
 # github.com/google/uuid v1.2.0
 github.com/google/uuid
-# github.com/haobird/goutils v0.1.0
-## explicit
-github.com/haobird/goutils
-# github.com/json-iterator/go v1.1.9
-github.com/json-iterator/go
-# github.com/leodido/go-urn v1.2.0
-github.com/leodido/go-urn
 # github.com/logrusorgru/aurora v2.0.3+incompatible
-## explicit
 github.com/logrusorgru/aurora
 # github.com/mask-pp/rtp-ps v1.0.0
 github.com/mask-pp/rtp-ps/buffer
@@ -103,10 +75,6 @@ github.com/mask-pp/rtp-ps/buffer
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.12
 github.com/mattn/go-isatty
-# github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421
-github.com/modern-go/concurrent
-# github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742
-github.com/modern-go/reflect2
 # github.com/pion/datachannel v1.4.21
 github.com/pion/datachannel
 # github.com/pion/dtls/v2 v2.0.9
@@ -189,21 +157,11 @@ github.com/shirou/gopsutil/mem
 github.com/shirou/gopsutil/net
 # github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 github.com/teris-io/shortid
-# github.com/tidwall/gjson v1.8.0
-## explicit
-github.com/tidwall/gjson
-# github.com/tidwall/match v1.0.3
-github.com/tidwall/match
-# github.com/tidwall/pretty v1.1.0
-github.com/tidwall/pretty
 # github.com/tklauser/go-sysconf v0.3.6
 github.com/tklauser/go-sysconf
 # github.com/tklauser/numcpus v0.2.2
 github.com/tklauser/numcpus
-# github.com/ugorji/go/codec v1.1.7
-github.com/ugorji/go/codec
 # github.com/zhangpeihao/goamf v0.0.0-20140409082417-3ff2c19514a8
-## explicit
 github.com/zhangpeihao/goamf
 # golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 ## explicit
@@ -211,7 +169,6 @@ golang.org/x/crypto/cryptobyte
 golang.org/x/crypto/cryptobyte/asn1
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
-golang.org/x/crypto/sha3
 # golang.org/x/net v0.0.0-20210614182718-04defd469f4e
 golang.org/x/net/bpf
 golang.org/x/net/dns/dnsmessage
@@ -228,7 +185,6 @@ golang.org/x/net/proxy
 golang.org/x/sync/errgroup
 # golang.org/x/sys v0.0.0-20210616094352-59db8d763f22
 ## explicit
-golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
@@ -253,35 +209,5 @@ golang.org/x/text/transform
 # golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1
 golang.org/x/xerrors
 golang.org/x/xerrors/internal
-# google.golang.org/protobuf v1.23.0
-google.golang.org/protobuf/encoding/prototext
-google.golang.org/protobuf/encoding/protowire
-google.golang.org/protobuf/internal/descfmt
-google.golang.org/protobuf/internal/descopts
-google.golang.org/protobuf/internal/detrand
-google.golang.org/protobuf/internal/encoding/defval
-google.golang.org/protobuf/internal/encoding/messageset
-google.golang.org/protobuf/internal/encoding/tag
-google.golang.org/protobuf/internal/encoding/text
-google.golang.org/protobuf/internal/errors
-google.golang.org/protobuf/internal/fieldnum
-google.golang.org/protobuf/internal/fieldsort
-google.golang.org/protobuf/internal/filedesc
-google.golang.org/protobuf/internal/filetype
-google.golang.org/protobuf/internal/flags
-google.golang.org/protobuf/internal/genname
-google.golang.org/protobuf/internal/impl
-google.golang.org/protobuf/internal/mapsort
-google.golang.org/protobuf/internal/pragma
-google.golang.org/protobuf/internal/set
-google.golang.org/protobuf/internal/strs
-google.golang.org/protobuf/internal/version
-google.golang.org/protobuf/proto
-google.golang.org/protobuf/reflect/protoreflect
-google.golang.org/protobuf/reflect/protoregistry
-google.golang.org/protobuf/runtime/protoiface
-google.golang.org/protobuf/runtime/protoimpl
-# gopkg.in/yaml.v2 v2.4.0
-gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 ## explicit
