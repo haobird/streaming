@@ -39,7 +39,7 @@ docker build -t haobird/stream:latest -f docker/stream/Dockerfile .
 # docker build -t haobird/ffmpeg:latest -f zone/ffmpeg/Dockerfile . 
 
 ② 测试运行
-docker run --name ffmpeg_test haobird/ffmpeg
+docker run --name stream_test haobird/stream
 docker exec -it ffmpeg_test /bin/sh 
 
 ③ 推送到远程

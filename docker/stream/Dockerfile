@@ -11,4 +11,5 @@ ADD . .
 # RUN GOOS=linux CGO_ENABLED=0 GOARCH=amd64 go build -ldflags="-s -w" -installsuffix cgo -o app cmd/main.go
 
 # 启动服务
-CMD ["/opt/bootstrap.sh"]
+# CMD ["/opt/bootstrap.sh"]
+CMD ["/bin/sh", "-c", "while true;do echo hello docker;sleep 1;done"]
