@@ -1,8 +1,8 @@
 [Engine]
 EnableAudio = false
 EnableVideo = true
-# 发布流默认过期时间 10分钟
-PublishTimeout = 600000000000
+# 发布流默认过期时间 1分钟
+PublishTimeout = 60000000000
 [Summary]
 [RTMP]
 ListenAddr = ":1935"
