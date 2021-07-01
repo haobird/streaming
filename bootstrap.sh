@@ -2,7 +2,7 @@
 
 # 预设置变量
 cfgpath="config.toml"
-hostip="192.168.1.110"
+hostip="192.168.1.109"
 
 # 判断是否 有hostip的环境变量
 if [ $HOST_IP ];then

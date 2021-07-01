@@ -1,5 +1,5 @@
 [Engine]
-EnableAudio = true
+EnableAudio = false
 EnableVideo = true
 # 发布流默认过期时间 10分钟
 PublishTimeout = 600000000000
